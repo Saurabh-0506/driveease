@@ -79,6 +79,15 @@ export function StatusTag({ value }) {
     Ongoing: 'bg-cyan-300/15 text-cyan-300',
     Completed: 'bg-emerald-300/15 text-emerald-300',
     Cancelled: 'bg-rose-300/15 text-rose-300',
+    Open: 'bg-emerald-300/15 text-emerald-300',
+    Limited: 'bg-amber-300/15 text-amber-300',
+    Full: 'bg-rose-300/15 text-rose-300',
+    Reserved: 'bg-blue-300/15 text-blue-300',
+    'Gate Ready': 'bg-cyan-300/15 text-cyan-300',
+    'Checked In': 'bg-emerald-300/15 text-emerald-300',
+    Exited: 'bg-slate-700 text-slate-200',
+    Approaching: 'bg-amber-300/15 text-amber-300',
+    Parked: 'bg-emerald-300/15 text-emerald-300',
     available: 'bg-emerald-300/15 text-emerald-300',
     rented: 'bg-blue-300/15 text-blue-300',
     maintenance: 'bg-amber-300/15 text-amber-300',
@@ -112,14 +121,14 @@ export function DataSkeleton({ rows = 5 }) {
   )
 }
 
-export function PageLoader({ label = 'Loading portal...' }) {
+export function PageLoader({ label = 'Loading smart parking portal...' }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md space-y-4 text-center">
         <div className="mx-auto h-12 w-12 animate-pulse rounded-full bg-electricBlue/30" />
         <div>
           <h2 className="font-heading text-xl font-bold text-white">{label}</h2>
-          <p className="mt-2 text-sm text-slate-300">Fetching the next premium experience for DriveEase.</p>
+          <p className="mt-2 text-sm text-slate-300">Syncing live slots, gate access, and operator telemetry.</p>
         </div>
         <div className="space-y-2">
           <SkeletonBlock className="h-3 w-full" />

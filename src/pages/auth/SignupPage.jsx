@@ -56,11 +56,11 @@ export default function SignupPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <div>
             <p className="mb-3 inline-block rounded-full bg-electricBlue/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-200">
-              DriveEase Platform
+              DriveEase SmartPark
             </p>
-            <h1 className="font-heading text-4xl font-bold">Create Your DriveEase Account</h1>
+            <h1 className="font-heading text-4xl font-bold">Create Your Smart Parking Account</h1>
             <p className="mt-4 text-slate-300">
-              Register as a user, admin, or vendor to access your dedicated portal experience.
+              Register as a driver, admin, or operator to access the live parking platform.
             </p>
             <div className="mt-8 rounded-card border border-slate-700 bg-deepNavy p-4 text-sm text-slate-300">
               Signup is stored in local browser storage for this UI demo.

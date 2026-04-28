@@ -39,17 +39,17 @@ export default function LoginPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <div>
             <p className="mb-3 inline-block rounded-full bg-electricBlue/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-200">
-              DriveEase Platform
+              DriveEase SmartPark
             </p>
-            <h1 className="font-heading text-4xl font-bold">Premium Car Rental Operations, Unified</h1>
+            <h1 className="font-heading text-4xl font-bold">Industry-Grade Smart Parking Operations</h1>
             <p className="mt-4 text-slate-300">
-              Explore user, admin, and vendor experiences with role-based routing, smart booking flows, analytics, and polished SaaS visuals.
+              Explore driver, control-center, and operator experiences with live slot availability, QR entry, payment rails, and tracking telemetry.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Collapsible sidebars</div>
-              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Charts + skeleton loaders</div>
-              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">React Hook Form validation</div>
-              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Toast action feedback</div>
+              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Live parking occupancy</div>
+              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">QR access control</div>
+              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Payment gateway flows</div>
+              <div className="rounded-card border border-slate-700 bg-deepNavy p-3">Vehicle tracking states</div>
             </div>
           </div>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
             </button>
 
             <p className="text-center text-sm text-slate-300">
-              New to DriveEase?{' '}
+              New to DriveEase SmartPark?{' '}
               <Link to="/signup" className="font-semibold text-blue-300 hover:text-blue-200">
                 Create an account
               </Link>

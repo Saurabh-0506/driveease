@@ -6,9 +6,9 @@ import { adminNav, userNav, vendorNav } from '../data/navigation'
 import { useAppStore } from '../store/useAppStore'
 
 const labels = {
-  user: 'User Portal',
-  admin: 'Admin Portal',
-  vendor: 'Vendor Portal',
+  user: 'Driver Portal',
+  admin: 'Control Center',
+  vendor: 'Operator Portal',
 }
 
 export default function PortalLayout({ role }) {
@@ -32,7 +32,7 @@ export default function PortalLayout({ role }) {
         }`}
       >
         <div className="mb-6 flex items-center justify-between">
-          {!collapsed ? <h2 className="font-heading text-xl font-bold">DriveEase</h2> : null}
+          {!collapsed ? <h2 className="font-heading text-xl font-bold">DriveEase SmartPark</h2> : null}
           <button className="rounded-control p-2 hover:bg-slate-700" onClick={() => setCollapsed((prev) => !prev)}>
             {collapsed ? <Menu size={18} /> : <X size={18} />}
           </button>
@@ -82,7 +82,7 @@ export default function PortalLayout({ role }) {
           </button>
           <div>
             <p className="text-sm text-slate-300">Welcome back</p>
-            <p className="font-heading text-lg font-semibold">{auth.name || 'DriveEase User'}</p>
+            <p className="font-heading text-lg font-semibold">{auth.name || 'DriveEase SmartPark User'}</p>
           </div>
           <div className="rounded-control border border-slate-600 bg-slate-800/60 px-3 py-1 text-xs">{labels[role]}</div>
         </header>

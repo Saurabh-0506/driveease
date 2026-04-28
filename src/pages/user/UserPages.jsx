@@ -1,61 +1,99 @@
 import { useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
+import { CalendarDays, CircleDollarSign, LayoutDashboard, Search, ShieldCheck, Wallet } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Button, Card, DataSkeleton, Input, PageShell, Select, StatusTag } from '../../components/common'
-import { useMockFetch } from '../../hooks/useMockFetch'
+import { Button, Card, Input, PageShell, Select, StatusTag } from '../../components/common'
+import { useLiveParkingSync } from '../../hooks/useLiveParkingSync'
 import { useAppStore } from '../../store/useAppStore'
 
-export function UserLandingPage() {
-  const { register, handleSubmit } = useForm()
-  const navigate = useNavigate()
+function QrTicket({ token }) {
+  const cells = Array.from({ length: 81 }, (_, index) => {
+    const code = token.charCodeAt(index % token.length) + index
+    return code % 3 === 0
+  })
 
   return (
-    <PageShell title="Rent Better. Drive Smarter." subtitle="Discover premium cars from trusted vendors in minutes.">
+    <div className="grid w-fit grid-cols-9 gap-1 rounded-card bg-white p-3">
+      {cells.map((filled, index) => (
+        <span key={index} className={`h-2.5 w-2.5 rounded-sm ${filled ? 'bg-slate-950' : 'bg-slate-200'}`} />
+      ))}
+    </div>
+  )
+}
+
+function LiveSignal() {
+  const websocketConnected = useAppStore((state) => state.websocketConnected)
+
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
+      <span className={`h-2 w-2 rounded-full ${websocketConnected ? 'bg-emerald-300' : 'bg-rose-300'}`} />
+      {websocketConnected ? 'WebSocket live' : 'Feed offline'}
+    </div>
+  )
+}
+
+export function UserLandingPage() {
+  useLiveParkingSync()
+  const { register, handleSubmit } = useForm()
+  const navigate = useNavigate()
+  const parkingLots = useAppStore((state) => state.parkingLots)
+
+  const totalAvailable = parkingLots.reduce((sum, lot) => sum + lot.availableSlots, 0)
+
+  return (
+    <PageShell title="Smart Parking. Live Access." subtitle="Reserve a verified slot, pay instantly, and unlock entry with QR-based gate control.">
       <Card className="bg-deepNavy/60 p-6">
-        <form
-          onSubmit={handleSubmit(() => navigate('/user/browse'))}
-          className="grid gap-3 md:grid-cols-4"
-        >
-          <Input label="Pickup Location" placeholder="Downtown, NYC" {...register('location')} />
-          <Input label="Start Date" type="date" {...register('startDate')} />
-          <Input label="End Date" type="date" {...register('endDate')} />
-          <Select label="Car Type" {...register('type')}>
-            <option value="">Any Type</option>
-            <option value="SUV">SUV</option>
-            <option value="Sedan">Sedan</option>
-            <option value="Luxury">Luxury</option>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <LiveSignal />
+          <p className="text-sm text-slate-300">{totalAvailable} slots currently available across connected hubs.</p>
+        </div>
+        <form onSubmit={handleSubmit(() => navigate('/user/browse'))} className="grid gap-3 md:grid-cols-4">
+          <Input label="Destination" placeholder="Airport, metro, business park" {...register('location')} />
+          <Input label="Start Time" type="datetime-local" {...register('startTime')} />
+          <Input label="Hours Needed" type="number" min="1" max="24" {...register('duration')} />
+          <Select label="Vehicle Type" {...register('vehicleType')}>
+            <option>Sedan</option>
+            <option>SUV</option>
+            <option>EV</option>
+            <option>Bike</option>
           </Select>
           <Button className="md:col-span-4" variant="amber" type="submit">
-            Search Available Cars
+            Find Live Parking
           </Button>
         </form>
       </Card>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        {['Flexible plans', 'Verified vendors', '24/7 support'].map((item) => (
-          <Card key={item} className="text-center">
-            <h3 className="font-heading text-lg">{item}</h3>
-            <p className="mt-2 text-sm text-slate-300">Built for smooth bookings and reliable road trips.</p>
+      <section className="grid gap-4 lg:grid-cols-4">
+          {[
+          { label: 'Live Slots', value: `${totalAvailable}`, icon: LayoutDashboard },
+          { label: 'Avg Entry Time', value: '24 sec', icon: CalendarDays },
+          { label: 'Payment Rails', value: 'UPI / Stripe / Razorpay', icon: CircleDollarSign },
+          { label: 'ANPR + QR', value: 'Gate-ready', icon: ShieldCheck },
+        ].map((item) => (
+          <Card key={item.label}>
+            <item.icon className="mb-3 text-cyan-300" size={20} />
+            <p className="text-sm text-slate-300">{item.label}</p>
+            <p className="font-heading text-xl">{item.value}</p>
           </Card>
         ))}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-3">
         <Card>
-          <h3 className="font-heading text-lg">How It Works</h3>
-          <ol className="mt-3 space-y-2 text-sm text-slate-300">
-            <li>1. Search by location, date, and style.</li>
-            <li>2. Pick your car and add extras.</li>
-            <li>3. Confirm booking and start driving.</li>
-          </ol>
+          <Search className="mb-3 text-amber-300" size={20} />
+          <h3 className="font-heading text-lg">Live parking availability</h3>
+          <p className="mt-2 text-sm text-slate-300">Every hub updates slot counts in near real time so drivers avoid full-lot dead ends.</p>
         </Card>
         <Card>
-          <h3 className="font-heading text-lg">Testimonials</h3>
-          <p className="mt-3 text-sm text-slate-300">
-            "DriveEase saved me two hours on business travel bookings. The UI is excellent and super clear."
-          </p>
-          <p className="mt-3 text-xs text-slate-400">- Maya, Product Lead</p>
+          <ShieldCheck className="mb-3 text-emerald-300" size={20} />
+          <h3 className="font-heading text-lg">QR entry control</h3>
+          <p className="mt-2 text-sm text-slate-300">Bookings generate secure access passes for barrier entry and operator verification.</p>
+        </Card>
+        <Card>
+          <Wallet className="mb-3 text-blue-300" size={20} />
+          <h3 className="font-heading text-lg">Vehicle tracking flow</h3>
+          <p className="mt-2 text-sm text-slate-300">See whether the vehicle is approaching, queued, gate-ready, or already parked.</p>
         </Card>
       </section>
     </PageShell>
@@ -63,60 +101,72 @@ export function UserLandingPage() {
 }
 
 export function UserBrowsePage() {
-  const { data: cars, loading } = useMockFetch('/mock/cars.json', [])
+  useLiveParkingSync()
   const navigate = useNavigate()
+  const parkingLots = useAppStore((state) => state.parkingLots)
+  const updateBookingDraft = useAppStore((state) => state.updateBookingDraft)
 
   return (
-    <PageShell title="Browse & Search" subtitle="Filter by budget, type, seats, transmission, and brand.">
+    <PageShell title="Browse Parking Hubs" subtitle="Compare occupancy, pricing, EV support, and gate readiness before reserving.">
       <div className="grid gap-4 xl:grid-cols-[300px_1fr]">
         <Card className="h-fit space-y-3">
           <h3 className="font-heading text-lg">Filters</h3>
-          <Input label="Price Range" placeholder="$80 - $300" />
-          <Select label="Car Type"><option>SUV</option><option>Sedan</option><option>Luxury</option></Select>
-          <Select label="Seats"><option>4</option><option>5</option><option>7</option></Select>
-          <Select label="Transmission"><option>Automatic</option><option>Manual</option></Select>
-          <Select label="Brand"><option>Tesla</option><option>BMW</option><option>Toyota</option></Select>
+          <Input label="Area" placeholder="Cyber Hub, Airport, Metro" />
+          <Select label="Availability">
+            <option>Any</option>
+            <option>Open</option>
+            <option>Limited</option>
+            <option>Full</option>
+          </Select>
+          <Select label="Amenities">
+            <option>Any</option>
+            <option>EV Charging</option>
+            <option>Covered Parking</option>
+            <option>Camera Monitored</option>
+          </Select>
+          <Select label="Pricing">
+            <option>Any</option>
+            <option>Under Rs 100/hr</option>
+            <option>Rs 100-150/hr</option>
+            <option>Rs 150+/hr</option>
+          </Select>
         </Card>
 
-        <div>
-          {loading ? <DataSkeleton rows={6} /> : null}
-          {!loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {cars.map((car) => (
-                <Card key={car.id} className="overflow-hidden p-0">
-                  <div className="h-36 bg-gradient-to-br from-blue-600/40 to-slate-700" />
-                  <div className="space-y-3 p-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-heading text-lg">{car.name}</h3>
-                      <span className="text-sm text-amber-300">{car.rating} / 5</span>
-                    </div>
-                    <p className="text-sm text-slate-300">${car.pricePerDay} / day</p>
-                    <div className="flex gap-2">
-                      <Button className="w-full" onClick={() => navigate(`/user/car/${car.id}`)}>View Details</Button>
-                      <Button
-                        className="w-full"
-                        variant="amber"
-                        onClick={() => {
-                          toast.success('Car added for quick booking')
-                          navigate('/user/booking-flow')
-                        }}
-                      >
-                        Quick Book
-                      </Button>
-                    </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+          {parkingLots.map((lot) => (
+            <Card key={lot.id} className="overflow-hidden p-0">
+              <div className="h-32 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.45),_transparent_40%),linear-gradient(135deg,rgba(37,99,235,0.35),rgba(15,23,42,0.95))]" />
+              <div className="space-y-4 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-heading text-lg">{lot.name}</h3>
+                    <p className="text-sm text-slate-300">{lot.location}</p>
                   </div>
-                </Card>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mt-6 flex justify-center gap-2 text-sm">
-            <Button variant="ghost">Previous</Button>
-            <Button>1</Button>
-            <Button variant="ghost">2</Button>
-            <Button variant="ghost">3</Button>
-            <Button variant="ghost">Next</Button>
-          </div>
+                  <StatusTag value={lot.status} />
+                </div>
+                <div className="grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+                  <p>{lot.availableSlots} / {lot.totalSlots} slots open</p>
+                  <p>Rs {lot.pricePerHour} per hour</p>
+                  <p>Gate: {lot.entryGate}</p>
+                  <p>EV chargers: {lot.evFastChargers}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button className="w-full" onClick={() => navigate(`/user/car/${lot.id}`)}>View Hub</Button>
+                  <Button
+                    className="w-full"
+                    variant="amber"
+                    onClick={() => {
+                      updateBookingDraft({ lotId: lot.id })
+                      toast.success('Live slot queued for booking')
+                      navigate('/user/booking-flow')
+                    }}
+                  >
+                    Reserve Slot
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
     </PageShell>
@@ -124,113 +174,251 @@ export function UserBrowsePage() {
 }
 
 export function UserCarDetailPage() {
+  useLiveParkingSync()
   const { id } = useParams()
-  const { data: cars, loading } = useMockFetch('/mock/cars.json', [])
   const navigate = useNavigate()
-  const selected = useMemo(() => cars.find((c) => String(c.id) === id), [cars, id])
+  const parkingLots = useAppStore((state) => state.parkingLots)
+  const liveSessions = useAppStore((state) => state.liveSessions)
+  const updateBookingDraft = useAppStore((state) => state.updateBookingDraft)
+  const selected = useMemo(() => parkingLots.find((lot) => lot.id === id), [parkingLots, id])
+  const hubSessions = useMemo(() => liveSessions.filter((session) => session.lotId === id).slice(0, 3), [liveSessions, id])
+
+  if (!selected) {
+    return (
+      <PageShell title="Parking Hub" subtitle="This hub could not be found in the live network.">
+        <Card>
+          <Button onClick={() => navigate('/user/browse')}>Back to Browse</Button>
+        </Card>
+      </PageShell>
+    )
+  }
 
   return (
-    <PageShell title="Car Detail" subtitle="Gallery, specs, availability, and verified vendor details.">
-      {loading ? <DataSkeleton rows={4} /> : null}
-      {!loading && selected ? (
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <Card className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="h-44 rounded-control bg-gradient-to-br from-blue-600/40 to-slate-700" />
-              <div className="h-44 rounded-control bg-gradient-to-br from-slate-700 to-blue-700/40" />
-              <div className="h-44 rounded-control bg-gradient-to-br from-slate-700 to-cyan-700/40 sm:col-span-2" />
+    <PageShell title="Parking Hub Detail" subtitle="See the live supply, gate setup, and current movement around this facility.">
+      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <Card className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="h-36 rounded-control bg-[linear-gradient(135deg,rgba(34,211,238,0.32),rgba(15,23,42,0.96))]" />
+            <div className="h-36 rounded-control bg-[linear-gradient(135deg,rgba(59,130,246,0.28),rgba(15,23,42,0.96))]" />
+            <div className="h-36 rounded-control bg-[linear-gradient(135deg,rgba(245,158,11,0.24),rgba(15,23,42,0.96))]" />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-xl">{selected.name}</h3>
+              <p className="text-sm text-slate-300">{selected.location} | Zone {selected.zone}</p>
             </div>
-            <h3 className="font-heading text-xl">{selected.name}</h3>
-            <p className="text-sm text-slate-300">{selected.type} | {selected.seats} seats | {selected.transmission}</p>
-            <p className="text-sm text-slate-300">Vendor: Urban Wheels Co. | Rating: {selected.rating}</p>
-            <Card className="bg-deepNavy">
-              <p className="text-sm text-slate-200">Availability Calendar (UI): Apr 24 - Apr 30 slots open.</p>
-            </Card>
+            <StatusTag value={selected.status} />
+          </div>
+          <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
+            <p>{selected.availableSlots} live slots currently free</p>
+            <p>Rs {selected.pricePerHour} / hour dynamic tariff</p>
+            <p>{selected.evFastChargers} fast EV chargers active</p>
+            <p>{selected.cameras} surveillance cameras online</p>
+            <p>Entry via {selected.entryGate}</p>
+            <p>Exit via {selected.exitGate}</p>
+          </div>
+          <Card className="bg-deepNavy">
+            <h4 className="font-heading text-base">Vehicle movement feed</h4>
+            <div className="mt-3 space-y-2 text-sm text-slate-300">
+              {hubSessions.map((session) => (
+                <div key={session.id} className="flex items-center justify-between rounded-control border border-slate-700 px-3 py-2">
+                  <span>{session.vehicleNumber} at {session.checkpoint}</span>
+                  <span>{session.etaMinutes === 0 ? session.stage : `${session.etaMinutes} min`}</span>
+                </div>
+              ))}
+            </div>
           </Card>
+        </Card>
 
-          <Card>
-            <h3 className="font-heading text-lg">Booking Form</h3>
-            <form className="mt-3 space-y-3" onSubmit={(e) => e.preventDefault()}>
-              <Input label="Pickup" type="date" />
-              <Input label="Dropoff" type="date" />
-              <Select label="Location"><option>Downtown Hub</option><option>Airport</option></Select>
-              <Button className="w-full" variant="amber" onClick={() => navigate('/user/booking-flow')}>
-                Continue to Booking
-              </Button>
-            </form>
-            <div className="mt-4 border-t border-slate-700 pt-3">
-              <h4 className="font-heading text-base">Reviews</h4>
-              <p className="mt-2 text-sm text-slate-300">"Super clean and pickup was effortless."</p>
-            </div>
-          </Card>
-        </div>
-      ) : null}
+        <Card>
+          <h3 className="font-heading text-lg">Reserve this hub</h3>
+          <p className="mt-2 text-sm text-slate-300">Lock a bay now and receive a QR pass for barrier access.</p>
+          <div className="mt-4 space-y-3">
+            <Button
+              className="w-full"
+              variant="amber"
+              onClick={() => {
+                updateBookingDraft({ lotId: selected.id })
+                navigate('/user/booking-flow')
+              }}
+            >
+              Continue to Slot Booking
+            </Button>
+            <Card className="bg-deepNavy">
+              <p className="text-sm text-slate-300">Demand signal</p>
+              <p className="font-heading text-lg">{selected.demand}</p>
+            </Card>
+          </div>
+        </Card>
+      </div>
     </PageShell>
   )
 }
 
 export function UserBookingFlowPage() {
-  const [step, setStep] = useState(1)
-  const { register, handleSubmit } = useForm()
+  useLiveParkingSync()
+  const parkingLots = useAppStore((state) => state.parkingLots)
+  const bookingDraft = useAppStore((state) => state.bookingDraft)
   const updateBookingDraft = useAppStore((state) => state.updateBookingDraft)
+  const resetBookingDraft = useAppStore((state) => state.resetBookingDraft)
+  const createParkingBooking = useAppStore((state) => state.createParkingBooking)
+  const [step, setStep] = useState(1)
+  const [confirmedBooking, setConfirmedBooking] = useState(null)
+  const { control, register, handleSubmit } = useForm({
+    defaultValues: bookingDraft,
+  })
+  const watchedLotId = useWatch({ control, name: 'lotId', defaultValue: bookingDraft.lotId })
+  const watchedDuration = useWatch({ control, name: 'durationHours', defaultValue: bookingDraft.durationHours })
+  const watchedVehicleNumber = useWatch({ control, name: 'vehicleNumber', defaultValue: bookingDraft.vehicleNumber })
+  const watchedPaymentMethod = useWatch({ control, name: 'paymentMethod', defaultValue: bookingDraft.paymentMethod })
 
-  const submitStep = (values) => {
+  const selectedLot = useMemo(() => {
+    return parkingLots.find((lot) => lot.id === watchedLotId) ?? parkingLots[0]
+  }, [parkingLots, watchedLotId])
+
+  const completeStep = (values) => {
     updateBookingDraft(values)
+
     if (step < 4) {
-      setStep((prev) => prev + 1)
-      toast.success(`Step ${step} completed`)
-    } else {
-      toast.success('Booking confirmed!')
+      setStep((current) => current + 1)
+      toast.success(`Step ${step} synced`)
+      return
     }
+
+    if (!selectedLot || selectedLot.availableSlots <= 0) {
+      toast.error('This hub is temporarily full. Try another live location.')
+      return
+    }
+
+    createParkingBooking({ ...bookingDraft, ...values })
+    const latest = useAppStore.getState().parkingBookings[0]
+    setConfirmedBooking(latest)
+    toast.success('Payment captured and QR pass issued')
   }
 
+  const totalAmount = selectedLot ? selectedLot.pricePerHour * Number(watchedDuration || bookingDraft.durationHours || 1) : 0
+
   return (
-    <PageShell title="Booking Flow" subtitle="Dates and pickup -> Extras -> Payment -> Confirmation">
+    <PageShell title="Slot Booking Flow" subtitle="Hub selection -> Vehicle details -> Payment integration -> QR access pass">
       <Card className="space-y-4">
         <div className="flex flex-wrap gap-2 text-xs">
-          {[1, 2, 3, 4].map((s) => (
-            <span key={s} className={`rounded-full px-3 py-1 ${step >= s ? 'bg-electricBlue/25 text-blue-200' : 'bg-slate-800 text-slate-400'}`}>
-              Step {s}
+          {['Hub', 'Vehicle', 'Payment', 'Access'].map((label, index) => (
+            <span
+              key={label}
+              className={`rounded-full px-3 py-1 ${step >= index + 1 ? 'bg-electricBlue/25 text-blue-200' : 'bg-slate-800 text-slate-400'}`}
+            >
+              {index + 1}. {label}
             </span>
           ))}
         </div>
 
-        {step < 4 ? (
-          <form onSubmit={handleSubmit(submitStep)} className="grid gap-3 md:grid-cols-2">
+        {!confirmedBooking ? (
+          <form onSubmit={handleSubmit(completeStep)} className="grid gap-3 md:grid-cols-2">
             {step === 1 ? (
               <>
-                <Input label="Pickup Date" type="date" {...register('pickupDate', { required: true })} />
-                <Input label="Return Date" type="date" {...register('returnDate', { required: true })} />
-                <Input label="Pickup Location" placeholder="Central Station" {...register('pickup')} />
+                <Select label="Parking Hub" {...register('lotId')}>
+                  {parkingLots.map((lot) => (
+                    <option key={lot.id} value={lot.id}>
+                      {lot.name} - {lot.availableSlots} open
+                    </option>
+                  ))}
+                </Select>
+                <Input label="Start Time" type="datetime-local" {...register('startTime', { required: true })} />
+                <Input label="Duration (hours)" type="number" min="1" max="24" {...register('durationHours', { required: true })} />
+                <Input label="Estimated Amount" value={`Rs ${totalAmount}`} readOnly />
               </>
             ) : null}
 
             {step === 2 ? (
               <>
-                <Select label="Insurance" {...register('insurance')}><option>Standard</option><option>Premium</option></Select>
-                <Select label="GPS" {...register('gps')}><option>Yes</option><option>No</option></Select>
-                <Select label="Child Seat" {...register('childSeat')}><option>None</option><option>1 Seat</option><option>2 Seats</option></Select>
+                <Input label="Vehicle Number" placeholder="DL 8C AX 4421" {...register('vehicleNumber', { required: true })} />
+                <Select label="Vehicle Type" {...register('vehicleType')}>
+                  <option>Sedan</option>
+                  <option>SUV</option>
+                  <option>EV</option>
+                  <option>Bike</option>
+                </Select>
+                <Select label="Charging Add-on" {...register('charging')}>
+                  <option>None</option>
+                  <option>Fast charger</option>
+                  <option>Battery top-up bay</option>
+                </Select>
+                <Select label="Entry Preference" {...register('entryPreference')}>
+                  <option>QR lane</option>
+                  <option>ANPR auto-open</option>
+                  <option>Operator assist</option>
+                </Select>
               </>
             ) : null}
 
             {step === 3 ? (
               <>
-                <Input label="Card Number" placeholder="**** **** **** 1988" {...register('card')} />
-                <Input label="Expiry" placeholder="08/29" {...register('expiry')} />
-                <Input label="CVV" placeholder="123" {...register('cvv')} />
+                <Select label="Payment Gateway" {...register('paymentMethod')}>
+                  <option>UPI</option>
+                  <option>Stripe</option>
+                  <option>Razorpay</option>
+                </Select>
+                <Input label="Payment Reference" placeholder="upi@bank or card token" {...register('paymentReference')} />
+                <Input label="Billing Amount" value={`Rs ${totalAmount}`} readOnly />
+                <Input label="Security Check" value="PCI-safe tokenized checkout enabled" readOnly />
               </>
             ) : null}
 
+            {step === 4 ? (
+              <Card className="md:col-span-2 bg-deepNavy">
+                <h3 className="font-heading text-lg">Confirm booking package</h3>
+                <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-2">
+                  <p>Hub: {selectedLot?.name}</p>
+                  <p>Vehicle: {watchedVehicleNumber || bookingDraft.vehicleNumber || 'Pending'}</p>
+                  <p>Duration: {watchedDuration || bookingDraft.durationHours} hours</p>
+                  <p>Payment rail: {watchedPaymentMethod || bookingDraft.paymentMethod || 'Pending'}</p>
+                  <p>Entry gate: {selectedLot?.entryGate}</p>
+                  <p>Total: Rs {totalAmount}</p>
+                </div>
+              </Card>
+            ) : null}
+
             <Button className="md:col-span-2" variant="amber" type="submit">
-              {step === 3 ? 'Confirm Booking' : 'Continue'}
+              {step === 4 ? 'Capture Payment and Generate QR' : 'Continue'}
             </Button>
           </form>
         ) : (
-          <Card className="bg-emerald-900/20">
-            <h3 className="font-heading text-xl">Booking Confirmed</h3>
-            <p className="mt-2 text-sm text-slate-300">Your trip is locked in. Confirmation ID: DE-2026-4451</p>
-            <Button className="mt-4" onClick={() => setStep(1)}>Create Another Booking</Button>
-          </Card>
+          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+            <Card className="bg-emerald-900/20">
+              <h3 className="font-heading text-xl">Access Pass Ready</h3>
+              <p className="mt-2 text-sm text-slate-300">Booking {confirmedBooking.id} is confirmed and synced with the gate system.</p>
+              <div className="mt-4 grid gap-2 text-sm text-slate-300 md:grid-cols-2">
+                <p>Hub: {confirmedBooking.lotName}</p>
+                <p>Slot: {confirmedBooking.slotLabel}</p>
+                <p>Vehicle: {confirmedBooking.vehicleNumber}</p>
+                <p>Payment: {confirmedBooking.paymentStatus}</p>
+                <p>Status: {confirmedBooking.status}</p>
+                <p>Total: Rs {confirmedBooking.amount}</p>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  onClick={() => {
+                    resetBookingDraft()
+                    setConfirmedBooking(null)
+                    setStep(1)
+                  }}
+                >
+                  Book Another Slot
+                </Button>
+                <Button variant="ghost" onClick={() => toast.success('QR pass mirrored to operator dashboard')}>
+                  Share with Gate Operator
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="flex flex-col items-center justify-center gap-4">
+              <QrTicket token={confirmedBooking.qrToken} />
+              <div className="text-center">
+                <p className="font-heading text-lg">{confirmedBooking.qrToken}</p>
+                <p className="text-sm text-slate-300">Scan at entry to auto-open the barrier.</p>
+              </div>
+            </Card>
+          </div>
         )}
       </Card>
     </PageShell>
@@ -238,63 +426,76 @@ export function UserBookingFlowPage() {
 }
 
 export function UserDashboardPage() {
-  const { data: bookings, loading } = useMockFetch('/mock/userBookings.json', [])
+  useLiveParkingSync()
+  const parkingBookings = useAppStore((state) => state.parkingBookings)
+  const liveSessions = useAppStore((state) => state.liveSessions)
+  const paymentFeed = useAppStore((state) => state.paymentFeed)
 
-  const totalSpent = bookings.reduce((sum, row) => sum + row.amount, 0)
+  const totalSpent = parkingBookings.reduce((sum, row) => sum + row.amount, 0)
+  const activeSessions = liveSessions.filter((session) => session.stage !== 'Exited')
 
   return (
-    <PageShell title="User Dashboard" subtitle="Track active trips and booking history quickly.">
+    <PageShell title="Driver Dashboard" subtitle="Track live sessions, QR-ready reservations, and your parking spend in one view.">
       <section className="grid gap-4 md:grid-cols-3">
-        <Card><p className="text-sm text-slate-300">Active / Upcoming</p><p className="font-heading text-2xl">3</p></Card>
-        <Card><p className="text-sm text-slate-300">Bookings History</p><p className="font-heading text-2xl">{bookings.length}</p></Card>
-        <Card><p className="text-sm text-slate-300">Total Spent</p><p className="font-heading text-2xl">${totalSpent}</p></Card>
+        <Card><p className="text-sm text-slate-300">Live Sessions</p><p className="font-heading text-2xl">{activeSessions.length}</p></Card>
+        <Card><p className="text-sm text-slate-300">Reservations</p><p className="font-heading text-2xl">{parkingBookings.length}</p></Card>
+        <Card><p className="text-sm text-slate-300">Total Spend</p><p className="font-heading text-2xl">Rs {totalSpent}</p></Card>
       </section>
 
-      <Card>
-        <h3 className="font-heading text-lg">Recent Bookings</h3>
-        {loading ? <DataSkeleton rows={4} /> : null}
-        {!loading ? (
-          <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="text-slate-400"><tr><th className="py-2">Car</th><th>Dates</th><th>Amount</th><th>Status</th><th></th></tr></thead>
-              <tbody>
-                {bookings.map((row) => (
-                  <tr key={row.id} className="border-t border-slate-700">
-                    <td className="py-3">{row.car}</td><td>{row.dates}</td><td>${row.amount}</td><td><StatusTag value={row.status} /></td>
-                    <td><Button className="px-3 py-1 text-xs" variant="ghost">Re-book</Button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <Card>
+          <h3 className="font-heading text-lg">Vehicle Tracking</h3>
+          <div className="mt-3 space-y-3">
+            {activeSessions.map((session) => (
+              <div key={session.id} className="rounded-control border border-slate-700 p-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p>{session.vehicleNumber}</p>
+                  <StatusTag value={session.stage} />
+                </div>
+                <p className="mt-1 text-slate-300">{session.lotName}</p>
+                <p className="mt-2 text-slate-400">{session.checkpoint}</p>
+                <p className="mt-1 text-cyan-200">{session.etaMinutes === 0 ? 'Ready at gate' : `${session.etaMinutes} min to entry`}</p>
+              </div>
+            ))}
           </div>
-        ) : null}
-      </Card>
+        </Card>
+
+        <Card>
+          <h3 className="font-heading text-lg">Latest Payments</h3>
+          <div className="mt-3 space-y-3 text-sm">
+            {paymentFeed.slice(0, 4).map((payment) => (
+              <div key={payment.id} className="flex items-center justify-between rounded-control border border-slate-700 px-3 py-2">
+                <span>{payment.gateway}</span>
+                <span>Rs {payment.amount}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </section>
     </PageShell>
   )
 }
 
 export function UserProfilePage() {
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit } = useForm({
     defaultValues: {
       fullName: 'Ava Carter',
       email: 'ava@driveease.app',
+      vehicleNumber: 'DL 8C AX 4421',
       notifications: true,
     },
   })
 
   return (
-    <PageShell title="Profile" subtitle="Manage your account, license, password, and notifications.">
+    <PageShell title="Profile & Vehicles" subtitle="Manage your account, registered vehicles, and parking alerts.">
       <Card>
-        <form
-          className="grid gap-3 md:grid-cols-2"
-          onSubmit={handleSubmit(() => toast.success('Profile updated successfully'))}
-        >
-          <Input label="Full Name" error={errors.fullName?.message} {...register('fullName', { required: 'Required' })} />
-          <Input label="Email" type="email" error={errors.email?.message} {...register('email', { required: 'Required' })} />
-          <Input label="Upload Driver License" type="file" {...register('license')} />
-          <Input label="Change Password" type="password" {...register('password')} />
+        <form className="grid gap-3 md:grid-cols-2" onSubmit={handleSubmit(() => toast.success('Driver profile updated'))}>
+          <Input label="Full Name" {...register('fullName')} />
+          <Input label="Email" type="email" {...register('email')} />
+          <Input label="Primary Vehicle" {...register('vehicleNumber')} />
+          <Input label="Access Tag ID" value="ANPR-LINKED-7742" readOnly />
           <label className="flex items-center gap-2 text-sm md:col-span-2">
-            <input type="checkbox" {...register('notifications')} /> Email me booking and discount updates
+            <input type="checkbox" {...register('notifications')} /> Send live gate, slot, and overstay alerts
           </label>
           <Button className="md:col-span-2" variant="amber" type="submit">Save Changes</Button>
         </form>
@@ -304,37 +505,45 @@ export function UserProfilePage() {
 }
 
 export function UserBookingsPage() {
-  const { data: bookings, loading } = useMockFetch('/mock/userBookings.json', [])
+  useLiveParkingSync()
+  const parkingBookings = useAppStore((state) => state.parkingBookings)
 
   return (
-    <PageShell title="My Bookings" subtitle="View booking states and modify when allowed.">
+    <PageShell title="My Parking Bookings" subtitle="Review reservation state, payment status, and QR access readiness.">
       <Card>
-        {loading ? <DataSkeleton rows={6} /> : null}
-        {!loading ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="text-slate-400"><tr><th className="py-2">Booking ID</th><th>Car</th><th>Dates</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody>
-                {bookings.map((b) => (
-                  <tr key={b.id} className="border-t border-slate-700">
-                    <td className="py-3">{b.id}</td>
-                    <td>{b.car}</td>
-                    <td>{b.dates}</td>
-                    <td><StatusTag value={b.status} /></td>
-                    <td className="space-x-2">
-                      <Button className="px-2 py-1 text-xs" variant="ghost" onClick={() => toast('Modify flow launched')}>
-                        Modify
-                      </Button>
-                      <Button className="px-2 py-1 text-xs" variant="ghost" onClick={() => toast.error('Cancellation requested')}>
-                        Cancel
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="text-slate-400">
+              <tr>
+                <th className="py-2">Booking ID</th>
+                <th>Hub</th>
+                <th>Vehicle</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parkingBookings.map((booking) => (
+                <tr key={booking.id} className="border-t border-slate-700">
+                  <td className="py-3">{booking.id}</td>
+                  <td>{booking.lotName}</td>
+                  <td>{booking.vehicleNumber}</td>
+                  <td>Rs {booking.amount}</td>
+                  <td><StatusTag value={booking.status} /></td>
+                  <td className="space-x-2">
+                    <Button className="px-2 py-1 text-xs" variant="ghost" onClick={() => toast.success(`QR token ${booking.qrToken}`)}>
+                      Show QR
+                    </Button>
+                    <Button className="px-2 py-1 text-xs" variant="ghost" onClick={() => toast('Support escalation created')}>
+                      Get Help
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </PageShell>
   )
