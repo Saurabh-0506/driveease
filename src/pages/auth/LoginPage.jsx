@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -7,7 +8,7 @@ import { useAppStore } from '../../store/useAppStore'
 export default function LoginPage() {
   const location = useLocation()
   const prefilledEmail = location.state?.registeredEmail ?? location.state?.prefillEmail ?? ''
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: {
       email: prefilledEmail,
       password: '',
@@ -16,6 +17,13 @@ export default function LoginPage() {
   const signIn = useAppStore((state) => state.signIn)
   const auth = useAppStore((state) => state.auth)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    reset({
+      email: prefilledEmail,
+      password: '',
+    })
+  }, [prefilledEmail, reset])
 
   if (auth.isAuthenticated) {
     const start = auth.role === 'user' ? '/user/landing' : `/${auth.role}/dashboard`
@@ -66,6 +74,22 @@ export default function LoginPage() {
           </div>
 
           <form autoComplete="off" onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-card border border-slate-700 bg-deepNavy/70 p-6">
+            <input
+              aria-hidden="true"
+              autoComplete="username"
+              className="hidden"
+              name="fakeUsername"
+              tabIndex={-1}
+              type="text"
+            />
+            <input
+              aria-hidden="true"
+              autoComplete="current-password"
+              className="hidden"
+              name="fakePassword"
+              tabIndex={-1}
+              type="password"
+            />
             <h2 className="font-heading text-2xl font-bold">Sign In</h2>
             <div className="rounded-control border border-blue-400/20 bg-blue-400/10 p-3 text-sm text-blue-100">
               {location.state?.registeredEmail
@@ -75,7 +99,7 @@ export default function LoginPage() {
             <Input
               label="Email"
               type="email"
-              autoComplete="off"
+              autoComplete="new-password"
               placeholder="you@example.com"
               error={errors.email?.message}
               {...register('email', { required: 'Email is required' })}
