@@ -1,0 +1,8 @@
+[
+  {"month": "Jan", "amount": 98000, "bookings": 600, "vendorPayout": 73000},
+  {"month": "Feb", "amount": 108000, "bookings": 640, "vendorPayout": 79500},
+  {"month": "Mar", "amount": 121000, "bookings": 710, "vendorPayout": 89500},
+  {"month": "Apr", "amount": 133000, "bookings": 790, "vendorPayout": 99100},
+  {"month": "May", "amount": 141000, "bookings": 860, "vendorPayout": 104500},
+  {"month": "Jun", "amount": 152000, "bookings": 920, "vendorPayout": 113900}
+]

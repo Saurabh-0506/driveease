@@ -1,0 +1,7 @@
+[
+  {"id": "DE-1101", "car": "Tesla Model 3", "dates": "Apr 22 - Apr 25", "status": "Confirmed", "amount": 420},
+  {"id": "DE-1102", "car": "BMW X5", "dates": "Apr 28 - May 01", "status": "Pending", "amount": 630},
+  {"id": "DE-1103", "car": "Toyota Corolla", "dates": "Mar 11 - Mar 16", "status": "Completed", "amount": 475},
+  {"id": "DE-1104", "car": "Mercedes S-Class", "dates": "Feb 03 - Feb 04", "status": "Cancelled", "amount": 330},
+  {"id": "DE-1105", "car": "Audi A6", "dates": "Jan 20 - Jan 23", "status": "Ongoing", "amount": 780}
+]

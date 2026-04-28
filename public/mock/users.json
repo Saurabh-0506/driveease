@@ -1,0 +1,6 @@
+[
+  {"id": 1, "name": "Ava Carter", "email": "ava@driveease.app", "bookingCount": 12, "status": "Active"},
+  {"id": 2, "name": "Liam Parker", "email": "liam@driveease.app", "bookingCount": 4, "status": "Suspended"},
+  {"id": 3, "name": "Nora Singh", "email": "nora@driveease.app", "bookingCount": 8, "status": "Active"},
+  {"id": 4, "name": "Chris Jordan", "email": "chris@driveease.app", "bookingCount": 2, "status": "Active"}
+]

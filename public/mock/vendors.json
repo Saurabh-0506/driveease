@@ -1,0 +1,6 @@
+[
+  {"id": 1, "name": "Urban Wheels", "listings": 24, "status": "Pending"},
+  {"id": 2, "name": "MetroWheel", "listings": 18, "status": "Approved"},
+  {"id": 3, "name": "Prime Rentals", "listings": 39, "status": "Approved"},
+  {"id": 4, "name": "Northline Autos", "listings": 9, "status": "Suspended"}
+]

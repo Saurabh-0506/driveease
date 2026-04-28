@@ -1,0 +1,8 @@
+[
+  {"id": 1, "name": "Tesla Model 3", "pricePerDay": 140, "rating": 4.9, "type": "Sedan", "seats": 5, "transmission": "Automatic", "status": "available"},
+  {"id": 2, "name": "BMW X5", "pricePerDay": 210, "rating": 4.8, "type": "SUV", "seats": 5, "transmission": "Automatic", "status": "rented"},
+  {"id": 3, "name": "Toyota Corolla", "pricePerDay": 95, "rating": 4.6, "type": "Sedan", "seats": 5, "transmission": "Automatic", "status": "available"},
+  {"id": 4, "name": "Mercedes S-Class", "pricePerDay": 330, "rating": 4.95, "type": "Luxury", "seats": 5, "transmission": "Automatic", "status": "maintenance"},
+  {"id": 5, "name": "Hyundai Creta", "pricePerDay": 120, "rating": 4.5, "type": "SUV", "seats": 5, "transmission": "Manual", "status": "available"},
+  {"id": 6, "name": "Audi A6", "pricePerDay": 260, "rating": 4.85, "type": "Luxury", "seats": 5, "transmission": "Automatic", "status": "rented"}
+]
