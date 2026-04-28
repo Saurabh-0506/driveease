@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Input, Select } from '../../components/common'
 import { useAppStore } from '../../store/useAppStore'
@@ -7,7 +7,9 @@ import { useAppStore } from '../../store/useAppStore'
 export default function SignupPage() {
   const signUp = useAppStore((state) => state.signUp)
   const auth = useAppStore((state) => state.auth)
+  const location = useLocation()
   const navigate = useNavigate()
+  const prefilledEmail = location.state?.prefillEmail ?? ''
 
   const {
     register,
@@ -16,7 +18,7 @@ export default function SignupPage() {
   } = useForm({
     defaultValues: {
       name: '',
-      email: '',
+      email: prefilledEmail,
       role: 'user',
       password: '',
       confirmPassword: '',
@@ -46,8 +48,12 @@ export default function SignupPage() {
       return
     }
 
-    toast.success('Account created. Please sign in.')
-    navigate('/login')
+    toast.success('Account created. Please sign in with your new account.')
+    navigate('/login', {
+      state: {
+        registeredEmail: values.email,
+      },
+    })
   }
 
   return (
@@ -63,7 +69,7 @@ export default function SignupPage() {
               Register as a driver, admin, or operator to access the live parking platform.
             </p>
             <div className="mt-8 rounded-card border border-slate-700 bg-deepNavy p-4 text-sm text-slate-300">
-              Signup is stored in local browser storage for this UI demo.
+              New users need to register first. After signup, you will return to login and sign in with the same email.
             </div>
           </div>
 

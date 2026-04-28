@@ -1,14 +1,17 @@
 import { useForm } from 'react-hook-form'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Input } from '../../components/common'
 import { useAppStore } from '../../store/useAppStore'
 
 export default function LoginPage() {
+  const location = useLocation()
+  const prefilledEmail = location.state?.registeredEmail ?? location.state?.prefillEmail ?? 'user@driveease.app'
+  const isNewUserFlow = Boolean(location.state?.registeredEmail || location.state?.prefillEmail)
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      email: 'user@driveease.app',
-      password: 'User@1234',
+      email: prefilledEmail,
+      password: isNewUserFlow ? '' : 'User@1234',
     },
   })
   const signIn = useAppStore((state) => state.signIn)
@@ -21,9 +24,19 @@ export default function LoginPage() {
   }
 
   const onSubmit = (values) => {
-    const success = signIn(values)
-    if (!success) {
-      toast.error('Invalid email or password')
+    const result = signIn(values)
+    if (!result.success) {
+      if (result.reason === 'not_found') {
+        toast.error('No account found. Please register first.')
+        navigate('/signup', {
+          state: {
+            prefillEmail: values.email,
+          },
+        })
+        return
+      }
+
+      toast.error('Incorrect password. Please try again.')
       return
     }
 
@@ -55,6 +68,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-card border border-slate-700 bg-deepNavy/70 p-6">
             <h2 className="font-heading text-2xl font-bold">Sign In</h2>
+            <div className="rounded-control border border-blue-400/20 bg-blue-400/10 p-3 text-sm text-blue-100">
+              {location.state?.registeredEmail
+                ? 'Account created successfully. Please log in with your new email and password.'
+                : 'New user? Register first, then log in with your new account.'}
+            </div>
             <Input
               label="Email"
               type="email"
@@ -78,13 +96,9 @@ export default function LoginPage() {
             <p className="text-center text-sm text-slate-300">
               New to DriveEase SmartPark?{' '}
               <Link to="/signup" className="font-semibold text-blue-300 hover:text-blue-200">
-                Create an account
+                Register first
               </Link>
             </p>
-
-            <div className="rounded-control border border-slate-700 bg-slate-900/60 p-3 text-xs text-slate-300">
-              Demo accounts: user@driveease.app / User@1234, admin@driveease.app / Admin@1234, vendor@driveease.app / Vendor@1234
-            </div>
           </form>
         </div>
       </div>

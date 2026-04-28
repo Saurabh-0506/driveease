@@ -15,6 +15,8 @@ const demoUsers = [
   { id: 'v-1', name: 'Noah Vendor', email: 'vendor@driveease.app', password: 'Vendor@1234', role: 'vendor' },
 ]
 
+const emptyAuth = { isAuthenticated: false, role: null, name: '', email: '' }
+
 const hasWindow = typeof window !== 'undefined'
 
 function loadUsers() {
@@ -45,18 +47,18 @@ function saveUsers(users) {
 
 function loadAuth() {
   if (!hasWindow) {
-    return { isAuthenticated: false, role: null, name: '', email: '' }
+    return emptyAuth
   }
 
   const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
   if (!raw) {
-    return { isAuthenticated: false, role: null, name: '', email: '' }
+    return emptyAuth
   }
 
   try {
     const parsed = JSON.parse(raw)
     if (!parsed?.isAuthenticated) {
-      return { isAuthenticated: false, role: null, name: '', email: '' }
+      return emptyAuth
     }
     return {
       isAuthenticated: true,
@@ -65,7 +67,7 @@ function loadAuth() {
       email: parsed.email,
     }
   } catch {
-    return { isAuthenticated: false, role: null, name: '', email: '' }
+    return emptyAuth
   }
 }
 
@@ -119,18 +121,21 @@ export const useAppStore = create((set) => ({
   liveSessions: liveSessionsSeed,
   paymentFeed: paymentFeedSeed,
   signIn: ({ email, password }) => {
-    let signedIn = false
+    let result = { success: false, reason: 'not_found' }
 
     set((state) => {
-      const user = state.users.find(
-        (item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password,
-      )
+      const user = state.users.find((item) => item.email.toLowerCase() === email.toLowerCase())
 
       if (!user) {
         return state
       }
 
-      signedIn = true
+      if (user.password !== password) {
+        result = { success: false, reason: 'invalid_password' }
+        return state
+      }
+
+      result = { success: true, reason: null }
       const auth = {
         isAuthenticated: true,
         role: user.role,
@@ -142,7 +147,7 @@ export const useAppStore = create((set) => ({
       return { auth }
     })
 
-    return signedIn
+    return result
   },
   signUp: ({ name, email, password, role }) => {
     let created = false
@@ -173,7 +178,7 @@ export const useAppStore = create((set) => ({
   },
   logout: () =>
     set(() => {
-      const auth = { isAuthenticated: false, role: null, name: '', email: '' }
+      const auth = emptyAuth
       saveAuth(auth)
       return { auth }
     }),
