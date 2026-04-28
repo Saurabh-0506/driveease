@@ -65,7 +65,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-card border border-slate-700 bg-deepNavy/70 p-6">
+          <form autoComplete="off" onSubmit={handleSubmit(onSubmit)} className="space-y-4 rounded-card border border-slate-700 bg-deepNavy/70 p-6">
             <h2 className="font-heading text-2xl font-bold">Sign In</h2>
             <div className="rounded-control border border-blue-400/20 bg-blue-400/10 p-3 text-sm text-blue-100">
               {location.state?.registeredEmail
@@ -75,6 +75,7 @@ export default function LoginPage() {
             <Input
               label="Email"
               type="email"
+              autoComplete="off"
               placeholder="you@example.com"
               error={errors.email?.message}
               {...register('email', { required: 'Email is required' })}
@@ -83,6 +84,7 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter your password"
               error={errors.password?.message}
               {...register('password', { required: 'Password is required' })}
