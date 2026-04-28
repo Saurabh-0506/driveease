@@ -6,12 +6,11 @@ import { useAppStore } from '../../store/useAppStore'
 
 export default function LoginPage() {
   const location = useLocation()
-  const prefilledEmail = location.state?.registeredEmail ?? location.state?.prefillEmail ?? 'user@driveease.app'
-  const isNewUserFlow = Boolean(location.state?.registeredEmail || location.state?.prefillEmail)
+  const prefilledEmail = location.state?.registeredEmail ?? location.state?.prefillEmail ?? ''
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       email: prefilledEmail,
-      password: isNewUserFlow ? '' : 'User@1234',
+      password: '',
     },
   })
   const signIn = useAppStore((state) => state.signIn)

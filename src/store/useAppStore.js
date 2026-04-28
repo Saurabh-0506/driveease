@@ -9,32 +9,42 @@ import {
 const USERS_STORAGE_KEY = 'driveease-users'
 const AUTH_STORAGE_KEY = 'driveease-auth'
 
-const demoUsers = [
-  { id: 'u-1', name: 'Ava Carter', email: 'user@driveease.app', password: 'User@1234', role: 'user' },
-  { id: 'a-1', name: 'Maya Admin', email: 'admin@driveease.app', password: 'Admin@1234', role: 'admin' },
-  { id: 'v-1', name: 'Noah Vendor', email: 'vendor@driveease.app', password: 'Vendor@1234', role: 'vendor' },
-]
-
 const emptyAuth = { isAuthenticated: false, role: null, name: '', email: '' }
+const legacyDemoEmails = new Set(['user@driveease.app', 'admin@driveease.app', 'vendor@driveease.app'])
 
 const hasWindow = typeof window !== 'undefined'
 
+function stripLegacyDemoUsers(users) {
+  if (!Array.isArray(users)) {
+    return []
+  }
+
+  return users.filter((item) => item?.email && !legacyDemoEmails.has(item.email.toLowerCase()))
+}
+
 function loadUsers() {
   if (!hasWindow) {
-    return demoUsers
+    return []
   }
 
   const raw = window.localStorage.getItem(USERS_STORAGE_KEY)
   if (!raw) {
-    window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(demoUsers))
-    return demoUsers
+    window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([]))
+    return []
   }
 
   try {
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length ? parsed : demoUsers
+    const sanitizedUsers = stripLegacyDemoUsers(parsed)
+
+    if (!Array.isArray(parsed) || sanitizedUsers.length !== parsed.length) {
+      saveUsers(sanitizedUsers)
+    }
+
+    return sanitizedUsers
   } catch {
-    return demoUsers
+    window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([]))
+    return []
   }
 }
 
@@ -60,6 +70,12 @@ function loadAuth() {
     if (!parsed?.isAuthenticated) {
       return emptyAuth
     }
+
+    if (legacyDemoEmails.has(parsed.email?.toLowerCase())) {
+      saveAuth(emptyAuth)
+      return emptyAuth
+    }
+
     return {
       isAuthenticated: true,
       role: parsed.role,
